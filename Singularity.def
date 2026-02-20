@@ -1,0 +1,45 @@
+Bootstrap: docker
+From: python:3.11-slim
+
+%post
+    set -eux
+
+    apt-get update
+    apt-get install -y --no-install-recommends \
+        git \
+        build-essential \
+        ca-certificates \
+        wget \
+        unzip \
+        zlib1g-dev \
+        libbz2-dev \
+        liblzma-dev \
+        samtools \
+        tabix
+    rm -rf /var/lib/apt/lists/*
+
+    python -m pip install --upgrade pip setuptools wheel
+
+    cd /opt
+    git clone https://github.com/YuheCheng62/DupCaller.git
+    cd DupCaller
+    python -m pip install .
+
+    cd /opt
+    wget https://sourceforge.net/projects/bio-bwa/files/bwa-0.7.17.tar.bz2
+    tar -xjf bwa-0.7.17.tar.bz2
+    cd bwa-0.7.17
+    make clean || true
+    make -e CFLAGS="-O2 -fcommon"
+    cp bwa /usr/local/bin/
+
+    cd /opt
+    wget https://github.com/broadinstitute/gatk/releases/download/4.2.6.1/gatk-4.2.6.1.zip
+    unzip gatk-4.2.6.1.zip
+    ln -s /opt/gatk-4.2.6.1/gatk /usr/local/bin/gatk
+
+%environment
+    export PATH=/usr/local/bin:$PATH
+
+%runscript
+    exec "$@"
