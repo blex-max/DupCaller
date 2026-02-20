@@ -34,3 +34,4 @@ MANIFEST
 # Temporary directories
 tmp/
 temp/
+*.sif
